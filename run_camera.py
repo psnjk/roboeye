@@ -3,8 +3,12 @@ Example usage of the RoboEye library
 """
 
 import time
-from roboeye import Camera, Display
 
+from picarx import Picarx
+from camera import Camera
+from display import Display
+
+px = Picarx()
 
 def main():
     try:
@@ -33,12 +37,15 @@ def main():
         )
 
         # Take a photo
-        print("Taking a photo...")
-        camera.take_photo("test_photo")
-
-        # Run for 30 seconds
-        print("Running for 30 seconds...")
-        time.sleep(30)
+        i=0
+        while i < 50:
+            print("Taking a photo...")
+            camera.take_photo(f"obstacle_photo_wall{i}")
+            i+=1
+            px.set_cam_pan_angle(30)
+            time.sleep(2)
+            px.set_cam_pan_angle(0)
+            time.sleep(1)
 
         # Clean up
         print("Cleaning up...")

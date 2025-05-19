@@ -6,8 +6,8 @@ import os
 import cv2
 import threading
 import time
-from .streaming import create_streaming_server, start_streaming_server
-from .utils import get_ip_addresses
+from streaming import create_streaming_server, start_streaming_server
+from utils import get_ip_addresses
 
 
 class Display:

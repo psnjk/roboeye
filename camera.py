@@ -89,7 +89,7 @@ class Camera:
             preview_config.colour_space = libcamera.ColorSpace.Sycc()
             preview_config.buffer_count = 4
             preview_config.queue = True
-            preview_config.controls = {'FrameRate': 30}
+            preview_config.controls = {'FrameRate': 15}
 
             # Start camera
             self.picam.configure(preview_config)
