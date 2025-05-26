@@ -2,15 +2,44 @@
 Example usage of the RoboEye library
 """
 
-import time
+# import time
 
 from picarx import Picarx
 from camera import Camera
 from display import Display
+from pygame import time
+from pygame import mixer
+from robot_hat import PWM, Music, Buzzer, set_volume, enable_speaker, disable_speaker
+import os
 
-px = Picarx()
+
 
 def main():
+
+    px = Picarx()
+    enable_speaker()
+    music = Music()
+    # set_volume(80)
+    # music.tempo(60, 1/4)
+    # music.play_tone_for(music.note("G4"), music.beat(1/8))
+
+    # music.play('C4')  # Play middle C note
+    # time.sleep(0.2)   # Duration of the beep
+    # music.stop()
+
+    mixer.init()
+    pop = mixer.Sound("pop.wav")
+    mixer.music.load("californication.mp3")
+    mixer.music.play()
+    pop.play()
+    clock = time.Clock()
+    FPS = 10
+
+
+
+
+    timer = 0
+
     try:
         # Initialize camera (with optional parameters)
         camera = Camera(
@@ -36,19 +65,27 @@ def main():
             port=9000  # Port for web streaming
         )
 
-        # Take a photo
-        i=0
-        while i < 50:
-            print("Taking a photo...")
-            camera.take_photo(f"obstacle_photo_wall{i}")
-            i+=1
-            px.set_cam_pan_angle(30)
-            time.sleep(2)
-            px.set_cam_pan_angle(0)
-            time.sleep(1)
+        image_idx = 0
+        px.set_cam_tilt_angle(0)
+        px.set_cam_pan_angle(0)
+        while True:
 
-        # Clean up
+            if timer == 30:
+                print("Taking a photo #", image_idx)
+                camera.take_photo(f"stop_dataset_photo{image_idx}")
+                pop.play()
+                image_idx += 1
+                timer = 0
+                #px.set_cam_tilt_angle(0)
+
+            if image_idx == 100:
+                break
+
+            timer += 1
+            clock.tick(FPS)
+
         print("Cleaning up...")
+        disable_speaker()
         display.close()
         camera.stop()
 
@@ -59,6 +96,7 @@ def main():
     finally:
         # Ensure cleanup
         camera.stop()
+        disable_speaker()
 
 
 if __name__ == "__main__":
