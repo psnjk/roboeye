@@ -191,12 +191,13 @@ class Camera:
             path = f'{user_home}/Pictures/roboeye'
 
         # Create directory if it doesn't exist
-        if not os.path.exists(path):
-            os.makedirs(path, mode=0o751, exist_ok=True)
+
 
         # Save photo
         if path == '':
             full_path = f"{filename}.jpg"
         else:
+            if not os.path.exists(path):
+                os.makedirs(path, mode=0o751, exist_ok=True)
             full_path = f"{path}/{filename}.jpg"
         return cv2.imwrite(full_path, self.current_frame)
