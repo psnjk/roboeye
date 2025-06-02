@@ -195,5 +195,8 @@ class Camera:
             os.makedirs(path, mode=0o751, exist_ok=True)
 
         # Save photo
-        full_path = f"{path}/{filename}.jpg"
+        if path == '':
+            full_path = f"{filename}.jpg"
+        else:
+            full_path = f"{path}/{filename}.jpg"
         return cv2.imwrite(full_path, self.current_frame)
