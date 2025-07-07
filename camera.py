@@ -44,6 +44,7 @@ class Camera:
         self.fps_color = (255, 255, 255)
         self.current_detections = []
         self.draw_detections_enabled = False
+        self.draw_detections_confidence = False
 
     def start(self):
         """Start the camera in a separate thread"""
@@ -128,9 +129,7 @@ class Camera:
                         cv2.LINE_AA
                     )
                 if self.draw_detections_enabled and self.current_detections:
-                    for detection in self.current_detections:
-                        x1, y1, x2, y2 = detection
-                        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+                    frame = self.draw_detections(frame, self.current_detections)
 
                 # Update current frame
                 self.current_frame = frame
@@ -210,31 +209,52 @@ class Camera:
     def get_image(self):
         return self.current_frame
 
-    def draw_detections(self, detections, color=(0, 255, 0), thickness=2):
+    def draw_detections(self, frame, detections, color=(0, 255, 0), thickness=2):
         """Draw detection rectangles on the current frame
 
         Args:
-            detections (list): List of detection rectangles [(x1, y1, x2, y2), ...]
-            color (tuple): BGR color for rectangle (default: green)
-            thickness (int): Line thickness for rectangle
+            :param frame: Frame to draw detections on
+            :param detections: List of detection rectangles [(x1, y1, x2, y2), ...]
+            :param color: BGR color for rectangle (default: green)
+            :param thickness: Line thickness for rectangle
         """
-        if self.current_frame is not None and detections:
-            for detection in detections:
-                x1, y1, x2, y2 = detection
-                cv2.rectangle(self.current_frame, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness)
+        if frame is not None and detections:
+            if self.draw_detections_confidence:
+                for detection in detections:
+                    x1, y1, x2, y2, confidence = detection
+                    cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness)
+                    cv2.putText(
+                        frame,
+                        f"C: {confidence:.2f}",
+                        (int(x1), int(y1)+10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        self.fps_size/2,
+                        color,
+                        1,
+                        cv2.LINE_AA
+                    )
+            else:
+                for detection in detections:
+                    x1, y1, x2, y2 = detection
+                    cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness)
+        return frame
 
     def update_detections(self, detections):
         """Update the detections to be drawn on frames
 
         Args:
-            detections (list): List of detection rectangles [(x1, y1, x2, y2), ...]
+            :param detections: List of detection rectangles [(x1, y1, x2, y2), ...]
+            or detection rectangles with confidence [(x1, y1, x2, y2, confidence), ...]
+            if self.draw_detections_confidence is true
         """
         self.current_detections = detections
 
-    def enable_detection_overlay(self, enable=True):
+    def enable_detection_overlay(self, enable=True, confidence=False):
         """Enable or disable detection overlay
 
         Args:
-            enable (bool): Whether to draw detections on frames
+            :param enable: Whether to draw detections on frames
+            :param confidence: Whether to draw confidence on frames
         """
         self.draw_detections_enabled = enable
+        self.draw_detections_confidence = confidence
