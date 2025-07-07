@@ -42,6 +42,8 @@ class Camera:
         self.fps_origin = (self.camera_width - 105, 20)
         self.fps_size = 0.6
         self.fps_color = (255, 255, 255)
+        self.current_detections = []
+        self.draw_detections_enabled = False
 
     def start(self):
         """Start the camera in a separate thread"""
@@ -125,6 +127,10 @@ class Camera:
                         1,
                         cv2.LINE_AA
                     )
+                if self.draw_detections_enabled and self.current_detections:
+                    for detection in self.current_detections:
+                        x1, y1, x2, y2 = detection
+                        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
 
                 # Update current frame
                 self.current_frame = frame
@@ -171,7 +177,7 @@ class Camera:
         if origin:
             self.fps_origin = origin
 
-    def take_photo(self, filename, path=None):
+    def take_photo(self, filename, path=''):
         """Take a photo and save it to disk
 
         Args:
@@ -192,7 +198,6 @@ class Camera:
 
         # Create directory if it doesn't exist
 
-
         # Save photo
         if path == '':
             full_path = f"{filename}.jpg"
@@ -201,3 +206,35 @@ class Camera:
                 os.makedirs(path, mode=0o751, exist_ok=True)
             full_path = f"{path}/{filename}.jpg"
         return cv2.imwrite(full_path, self.current_frame)
+
+    def get_image(self):
+        return self.current_frame
+
+    def draw_detections(self, detections, color=(0, 255, 0), thickness=2):
+        """Draw detection rectangles on the current frame
+
+        Args:
+            detections (list): List of detection rectangles [(x1, y1, x2, y2), ...]
+            color (tuple): BGR color for rectangle (default: green)
+            thickness (int): Line thickness for rectangle
+        """
+        if self.current_frame is not None and detections:
+            for detection in detections:
+                x1, y1, x2, y2 = detection
+                cv2.rectangle(self.current_frame, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness)
+
+    def update_detections(self, detections):
+        """Update the detections to be drawn on frames
+
+        Args:
+            detections (list): List of detection rectangles [(x1, y1, x2, y2), ...]
+        """
+        self.current_detections = detections
+
+    def enable_detection_overlay(self, enable=True):
+        """Enable or disable detection overlay
+
+        Args:
+            enable (bool): Whether to draw detections on frames
+        """
+        self.draw_detections_enabled = enable
